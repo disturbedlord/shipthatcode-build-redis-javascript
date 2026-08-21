@@ -5,12 +5,17 @@ const rl = readline.createInterface({
 
 class Redis {
   execute = (command: string, args: string) => {
-    const callback = (this as any)[command];
+    const callback = (this as any)[command.toUpperCase()];
     if (typeof callback === "function") {
       return callback(args);
     } else {
       return "Command not found";
     }
+  };
+
+  private bulkString = (inp: string) => {
+    const normalizedInp = this.Normalize(inp);
+    return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
   };
 
   private Normalize = (inp: string) => {
@@ -21,7 +26,7 @@ class Redis {
     let currText = "";
     while (i < inp.length) {
       if (inp[i] === '"' || inp[i] === "\'") {
-        if (stack.length > 0 && stack[-1] === inp[i]) {
+        if (stack.length > 0 && stack[stack.length - 1] === inp[i]) {
           // Closing Tag
           stack.pop();
           normalizedText.push(currText);
@@ -34,15 +39,20 @@ class Redis {
     }
 
     if (currText.length > 0) normalizedText.push(currText);
-
     return normalizedText.join(" ");
   };
 
   private PING = (args?: string) => {
     if (args) {
-      const norArg: string = this.Normalize(args);
-      return `$${norArg.length}\r\n${norArg}\r\n`;
+      return this.bulkString(args);
     } else return `+PONG\r\n`;
+  };
+
+  private ECHO = (args?: string) => {
+    if (!args) return this.bulkString("");
+    else {
+      return this.bulkString(args);
+    }
   };
 }
 

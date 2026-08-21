@@ -6,13 +6,17 @@ const rl = readline.createInterface({
 });
 class Redis {
     execute = (command, args) => {
-        const callback = this[command];
+        const callback = this[command.toUpperCase()];
         if (typeof callback === "function") {
             return callback(args);
         }
         else {
             return "Command not found";
         }
+    };
+    bulkString = (inp) => {
+        const normalizedInp = this.Normalize(inp);
+        return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
     };
     Normalize = (inp) => {
         // Normalize the Inp, remove Quotes
@@ -22,7 +26,7 @@ class Redis {
         let currText = "";
         while (i < inp.length) {
             if (inp[i] === '"' || inp[i] === "\'") {
-                if (stack.length > 0 && stack[-1] === inp[i]) {
+                if (stack.length > 0 && stack[stack.length - 1] === inp[i]) {
                     // Closing Tag
                     stack.pop();
                     normalizedText.push(currText);
@@ -42,11 +46,17 @@ class Redis {
     };
     PING = (args) => {
         if (args) {
-            const norArg = this.Normalize(args);
-            return `$${norArg.length}\r\n${norArg}\r\n`;
+            return this.bulkString(args);
         }
         else
             return `+PONG\r\n`;
+    };
+    ECHO = (args) => {
+        if (!args)
+            return this.bulkString("");
+        else {
+            return this.bulkString(args);
+        }
     };
 }
 const redis = new Redis();
