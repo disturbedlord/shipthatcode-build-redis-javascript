@@ -16,7 +16,7 @@ const ParseCommand = (inp: string) => {
     if (commandTable.has(cmd[0])) {
       const callback = commandTable.get(cmd[0]);
       if (callback) {
-        return callback(cmd[1] ?? "");
+        return callback(cmd.slice(1).join(" ") ?? "");
       }
     }
 };
