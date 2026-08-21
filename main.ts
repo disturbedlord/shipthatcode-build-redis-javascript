@@ -4,6 +4,18 @@ const rl = readline.createInterface({
 });
 
 class Redis {
+  Serialization = {
+    bulkString: (a: string) => {
+      const normalizedInp = this.Normalize(a);
+
+      if (!normalizedInp) return `$-1\r\n`;
+      else return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
+    },
+    simpleString: (a: string) => `+${a}\r\n`,
+    error: (e: string) => `-${e}\r\n`,
+    integers: (i: number) => `:${i}\r\n`,
+  };
+
   execute = (command: string, args: string) => {
     const callback = (this as any)[command.toUpperCase()];
     if (typeof callback === "function") {
@@ -11,11 +23,6 @@ class Redis {
     } else {
       return "Command not found";
     }
-  };
-
-  private bulkString = (inp: string) => {
-    const normalizedInp = this.Normalize(inp);
-    return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
   };
 
   private Normalize = (inp: string) => {
@@ -44,14 +51,14 @@ class Redis {
 
   private PING = (args?: string) => {
     if (args) {
-      return this.bulkString(args);
+      return this.Serialization.bulkString(args);
     } else return `+PONG\r\n`;
   };
 
   private ECHO = (args?: string) => {
-    if (!args) return this.bulkString("");
+    if (!args) return this.Serialization.bulkString("");
     else {
-      return this.bulkString(args);
+      return this.Serialization.bulkString(args);
     }
   };
 }
