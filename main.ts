@@ -21,7 +21,7 @@ class Redis {
     if (typeof callback === "function") {
       return callback(args);
     } else {
-      return "Command not found";
+      return this.Serialization.error(`ERR unknown command '${command}'`);
     }
   };
 
@@ -60,6 +60,10 @@ class Redis {
     else {
       return this.Serialization.bulkString(args);
     }
+  };
+
+  private COMMAND = (args?: string) => {
+    return this.Serialization.simpleString("OK");
   };
 }
 

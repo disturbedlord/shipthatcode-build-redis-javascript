@@ -5,18 +5,26 @@ const rl = readline.createInterface({
     input: process.stdin,
 });
 class Redis {
+    Serialization = {
+        bulkString: (a) => {
+            const normalizedInp = this.Normalize(a);
+            if (!normalizedInp)
+                return `$-1\r\n`;
+            else
+                return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
+        },
+        simpleString: (a) => `+${a}\r\n`,
+        error: (e) => `-${e}\r\n`,
+        integers: (i) => `:${i}\r\n`,
+    };
     execute = (command, args) => {
         const callback = this[command.toUpperCase()];
         if (typeof callback === "function") {
             return callback(args);
         }
         else {
-            return "Command not found";
+            return this.Serialization.error(`ERR unknown command '${command}'`);
         }
-    };
-    bulkString = (inp) => {
-        const normalizedInp = this.Normalize(inp);
-        return `$${normalizedInp.length}\r\n${normalizedInp}\r\n`;
     };
     Normalize = (inp) => {
         // Normalize the Inp, remove Quotes
@@ -46,17 +54,20 @@ class Redis {
     };
     PING = (args) => {
         if (args) {
-            return this.bulkString(args);
+            return this.Serialization.bulkString(args);
         }
         else
             return `+PONG\r\n`;
     };
     ECHO = (args) => {
         if (!args)
-            return this.bulkString("");
+            return this.Serialization.bulkString("");
         else {
-            return this.bulkString(args);
+            return this.Serialization.bulkString(args);
         }
+    };
+    COMMAND = (args) => {
+        return this.Serialization.simpleString("OK");
     };
 }
 const redis = new Redis();
