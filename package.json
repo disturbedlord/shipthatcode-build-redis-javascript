@@ -1,0 +1,20 @@
+{
+  "name": "shipthatcode-build-redis-javascript",
+  "version": "1.0.0",
+  "description": "[![shipthatcode — Build Redis from Scratch](https://api.shipthatcode.com/cert/5578d94eaa5522575bfb20cee6249d95.svg)](https://shipthatcode.com/courses/build-redis)",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    ".": "npx tsc  && copy .\\dist\\main.js .\\",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
