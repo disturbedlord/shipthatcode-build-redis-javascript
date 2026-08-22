@@ -5,6 +5,11 @@ const rl = readline.createInterface({
     input: process.stdin,
 });
 class Redis {
+    ARITY = {
+        PING: [0, 1],
+        ECHO: [1, 1],
+        COMMAND: [0, 0],
+    };
     Serialization = {
         bulkString: (a) => {
             const normalizedInp = this.Normalize(a);
@@ -16,10 +21,14 @@ class Redis {
         simpleString: (a) => `+${a}\r\n`,
         error: (e) => `-${e}\r\n`,
         integers: (i) => `:${i}\r\n`,
+        invalidArgs: (command) => `-ERR wrong number of arguments for '${command}' command\r\n`,
     };
     execute = (command, args) => {
-        const callback = this[command.toUpperCase()];
+        const callback = this[command];
         if (typeof callback === "function") {
+            const [lo, hi] = this.ARITY[command];
+            if (args.length < lo || args.length > hi)
+                return this.Serialization.invalidArgs(command);
             return callback(args);
         }
         else {
@@ -53,7 +62,7 @@ class Redis {
         return normalizedText.join(" ");
     };
     PING = (args) => {
-        if (args) {
+        if (args && args.length === 1) {
             return this.Serialization.bulkString(args);
         }
         else
@@ -75,8 +84,8 @@ rl.on("line", (line) => {
     if (!line)
         return;
     const data = line.split(" ");
-    const cmd = data[0];
-    const args = data.slice(1).join(" ");
+    const cmd = data[0]?.toUpperCase();
+    const args = data.slice(1);
     const response = redis.execute(cmd, args);
     process.stdout.write(response);
 });
